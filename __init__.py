@@ -48,9 +48,9 @@ def auth_user():
             session['user_auth'] = True
             return redirect(url_for('fiche_nom'))
         else:
-            return render_template('formulaire_auth_user.html', error=True)
+            return render_template('formulaire_authentification.html', error=True)
 
-    return render_template('formulaire_auth_user.html', error=False)
+    return render_template('formulaire_authentification.html', error=False)
 
 # ---------- FICHE NOM ----------
 
