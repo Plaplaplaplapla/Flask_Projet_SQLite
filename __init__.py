@@ -36,6 +36,8 @@ def authentification():
         else:
             # Afficher un message d'erreur si les identifiants sont incorrects
             return render_template('formulaire_authentification.html', error=True)
+ def est_user_authentifie():
+    return session.get('user_auth')
 
     return render_template('formulaire_authentification.html', error=False)
 
@@ -79,3 +81,33 @@ def enregistrer_client():
                                                                                                                                        
 if __name__ == "__main__":
   app.run(debug=True)
+
+@app.route('/auth_user', methods=['GET', 'POST'])
+def auth_user():
+    if request.method == 'POST':
+        if request.form['username'] == 'user' and request.form['password'] == '12345':
+            session['user_auth'] = True
+            return redirect(url_for('fiche_nom'))
+        else:
+            return render_template('formulaire_auth_user.html', error=True)
+
+    return render_template('formulaire_auth_user.html', error=False)
+
+@app.route('/fiche_nom/', methods=['GET', 'POST'])
+def fiche_nom():
+    # Protection USER
+    if not est_user_authentifie():
+        return redirect(url_for('auth_user'))
+
+    data = []
+
+    if request.method == 'POST':
+        nom = request.form['nom']
+
+        conn = sqlite3.connect('database.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM clients WHERE nom = ?', (nom,))
+        data = cursor.fetchall()
+        conn.close()
+
+    return render_template('recherche_nom.html', data=data)
