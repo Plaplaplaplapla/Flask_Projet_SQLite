@@ -25,7 +25,8 @@
             <a href="{{ url_for('logout') }}">Déconnexion</a>
         </nav>
     {% else %}
-        <p><a href="{{ url_for('authentification') }}">Se connecter</a> pour accéder aux fonctionnalités</p>
+        <p><a href="{{ url_for('authentification') }}">Se connecter en tant qu'admin</a> pour accéder aux fonctionnalités</p>
+        <p><a href="{{ url_for('auth_user') }}">Se connecter en tant qu'utilisateur</a> pour accéder aux fonctionnalités</p>
     {% endif %}
 
     <div class="section">
