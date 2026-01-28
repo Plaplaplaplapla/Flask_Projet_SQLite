@@ -113,3 +113,28 @@ def enregistrer_client():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+@app.route('/livres/')
+def lire_livres():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM livres;')
+    livres = cursor.fetchall()
+    conn.close()
+    return render_template('livres.html', livres=livres)
+
+# Ajouter un livre
+@app.route('/ajouter_livre', methods=['GET', 'POST'])
+def ajouter_livre():
+    if request.method == 'POST':
+        titre = request.form['titre']
+        auteur = request.form['auteur']
+        stock = int(request.form['stock'])
+        conn = sqlite3.connect('database.db')
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO livres (titre, auteur, stock) VALUES (?, ?, ?)', (titre, auteur, stock))
+        conn.commit()
+        conn.close()
+        return redirect('/livres/')
+    return render_template('ajouter_livre.html')
