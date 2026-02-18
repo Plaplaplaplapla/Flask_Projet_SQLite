@@ -2,13 +2,21 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestionnaire de tâches</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+        /* RESET DE BASE */
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
         }
 
         header {
@@ -18,17 +26,52 @@
             text-align: center;
         }
 
-        h1, h2 {
-            margin: 0 0 15px 0;
+        header h1 {
+            font-size: 2em;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 30px auto;
             background-color: white;
-            padding: 20px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        form input[type="text"], form input[type="date"], form select {
+            flex: 1 1 150px;
+            padding: 10px;
+            border: 1px solid #ccc;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            font-size: 16px;
+        }
+
+        form button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        form button:hover {
+            background-color: #45a049;
         }
 
         ul {
@@ -36,52 +79,88 @@
             padding: 0;
         }
 
-        li {
+        li.task-item {
             background-color: #f9f9f9;
-            margin-bottom: 10px;
-            padding: 15px;
-            border-left: 5px solid #4CAF50;
-            border-radius: 4px;
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            border-left: 6px solid #4CAF50;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
-        li span.status {
-            font-weight: bold;
-            float: right;
+        li.task-item.done {
+            border-left-color: #2ecc71;
+            opacity: 0.8;
+        }
+
+        .task-info {
+            max-width: 70%;
+        }
+
+        .task-info h3 {
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+
+        .task-info p {
+            margin-bottom: 3px;
             color: #555;
         }
 
-        a, button {
+        .badge {
             display: inline-block;
-            margin-top: 20px;
-            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.9em;
             color: white;
-            background-color: #4CAF50;
-            padding: 10px 20px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
         }
 
-        a:hover, button:hover {
-            background-color: #45a049;
+        .badge.pending { background-color: #f39c12; }
+        .badge.done { background-color: #2ecc71; }
+
+        .task-actions form {
+            display: inline;
+        }
+
+        .task-actions button {
+            background-color: #e74c3c;
+            padding: 6px 12px;
+            font-size: 0.9em;
+            border-radius: 6px;
+        }
+
+        .task-actions button:hover {
+            background-color: #c0392b;
         }
 
         .empty {
+            text-align: center;
             color: #777;
             font-style: italic;
+            padding: 20px 0;
         }
 
-        form input, form select {
-            padding: 8px;
-            margin-right: 10px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
+        a.back-home {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #4CAF50;
+            font-weight: bold;
         }
 
-        form button {
-            margin-top: 0;
+        a.back-home:hover {
+            color: #2e7d32;
         }
+
+        @media(max-width:600px){
+            .task-info { max-width: 100%; }
+            li.task-item { flex-direction: column; align-items: flex-start; }
+            .task-actions { margin-top: 10px; }
+        }
+
     </style>
 </head>
 <body>
@@ -99,6 +178,7 @@
                 <option value="pending">En attente</option>
                 <option value="done">Terminée</option>
             </select>
+            <input type="date" name="due_date">
             <button type="submit">Ajouter</button>
         </form>
 
@@ -106,17 +186,27 @@
         <h2>Liste des tâches</h2>
         <ul>
         {% for task in tasks %}
-            <li>
-                {{ task.title }}
-                <span class="status">{{ task.status }}</span><br>
-                {{ task.description }}
+            <li class="task-item {% if task.status == 'done' %}done{% endif %}">
+                <div class="task-info">
+                    <h3>{{ task.title }} <span class="badge {{ task.status }}">{{ task.status }}</span></h3>
+                    <p>{{ task.description }}</p>
+                    {% if task.due_date %}
+                        <p><em>Échéance : {{ task.due_date }}</em></p>
+                    {% endif %}
+                </div>
+                <div class="task-actions">
+                    <form action="{{ url_for('supprimer_task', task_id=task.id) }}" method="POST">
+                        <button type="submit" onclick="return confirm('Supprimer cette tâche ?')">Supprimer</button>
+                    </form>
+                </div>
             </li>
         {% else %}
             <li class="empty">Aucune tâche pour le moment.</li>
         {% endfor %}
         </ul>
 
-        <a href="/">← Retour accueil</a>
+        <a class="back-home" href="{{ url_for('accueil') }}">← Retour accueil</a>
     </div>
 </body>
 </html>
+
