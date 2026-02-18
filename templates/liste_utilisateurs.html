@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des utilisateurs</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .role-admin {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .role-user {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        a.button {
+            display: inline-block;
+            text-decoration: none;
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            transition: background-color 0.3s;
+        }
+
+        a.button:hover {
+            background-color: #2ecc71;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Liste des utilisateurs</h1>
+    </header>
+
+    <div class="container">
+        {% if utilisateurs %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom d'utilisateur</th>
+                    <th>Rôle</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in utilisateurs %}
+                <tr>
+                    <td>{{ user[0] }}</td>
+                    <td>{{ user[1] }}</td>
+                    <td class="{{ 'role-admin' if user[2] == 'admin' else 'role-user' }}">{{ user[2] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Aucun utilisateur enregistré.</p>
+        {% endif %}
+
+        <a class="button" href="{{ url_for('accueil') }}">← Retour à l'accueil</a>
+    </div>
+</body>
+</html>
