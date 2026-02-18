@@ -1,24 +1,94 @@
-!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
     <title>Gestionnaire de tâches</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-left: 5px solid #4CAF50;
+            border-radius: 4px;
+        }
+
+        li span.status {
+            font-weight: bold;
+            float: right;
+            color: #555;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: white;
+            background-color: #4CAF50;
+            padding: 10px 20px;
+            border-radius: 4px;
+        }
+
+        a:hover {
+            background-color: #45a049;
+        }
+
+        .empty {
+            color: #777;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
+    <header>
+        <h1>Gestionnaire de tâches</h1>
+    </header>
 
-<h1>Gestionnaire de tâches</h1>
+    <div class="container">
+        <ul>
+        {% for task in tasks %}
+            <li>
+                {{ task.title }}
+                <span class="status">{{ task.status }}</span><br>
+                {{ task.description }}
+            </li>
+        {% else %}
+            <li class="empty">Aucune tâche pour le moment.</li>
+        {% endfor %}
+        </ul>
 
-<ul>
-{% for task in tasks %}
-    <li>
-        <strong>{{ task.title }}</strong> - {{ task.status }}<br>
-        {{ task.description }}
-    </li>
-{% else %}
-    <li>Aucune tâche pour le moment.</li>
-{% endfor %}
-</ul>
-
-<a href="/">Retour accueil</a>
-
+        <a href="/">← Retour accueil</a>
+    </div>
 </body>
 </html>
