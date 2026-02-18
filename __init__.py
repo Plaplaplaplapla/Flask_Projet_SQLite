@@ -138,3 +138,12 @@ def ajouter_livre():
         conn.close()
         return redirect('/livres/')
     return render_template('ajouter_livre.html')
+    
+##Gestionnaire
+@app.route('/tasks')
+def tasks():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    tasks = conn.execute("SELECT * FROM tasks").fetchall()
+    conn.close()
+    return render_template('tasks.html', tasks=tasks)
