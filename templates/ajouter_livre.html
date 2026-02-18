@@ -62,3 +62,42 @@
         }
 
         input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            text-decoration: none;
+            color: white;
+            background-color: #27ae60;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .back-link:hover {
+            background-color: #2ecc71;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Ajouter un livre</h1>
+        <form method="post">
+            <label for="titre">Titre :</label>
+            <input type="text" id="titre" name="titre" placeholder="Titre du livre" required>
+
+            <label for="auteur">Auteur :</label>
+            <input type="text" id="auteur" name="auteur" placeholder="Nom de l'auteur" required>
+
+            <label for="stock">Stock :</label>
+            <input type="number" id="stock" name="stock" min="0" value="1" required>
+
+            <input type="submit" value="Ajouter">
+        </form>
+        <a class="back-link" href="{{ url_for('lire_livres') }}">← Retour à la liste des livres</a>
+    </div>
+</body>
+</html>
+
