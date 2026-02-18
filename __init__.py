@@ -65,6 +65,34 @@ def logout():
     return redirect(url_for('accueil'))
 
 
+
+app.route('/ajouter_utilisateur', methods=['GET', 'POST'])
+def ajouter_utilisateur():
+    # Vérifie que l'admin est connecté
+    if not est_authentifie() or session.get('role') != 'admin':
+        return redirect(url_for('authentification'))
+
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        role = request.form.get('role', 'user')
+
+        conn = sqlite3.connect('database.db')
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                'INSERT INTO utilisateurs (username, password, role) VALUES (?, ?, ?)',
+                (username, password, role)
+            )
+            conn.commit()
+        except sqlite3.IntegrityError:
+            conn.close()
+            return render_template('ajouter_user.html', error="Nom d'utilisateur déjà utilisé.")
+        conn.close()
+        return redirect(url_for('liste_utilisateurs'))
+
+    return render_template('ajouter_user.html', error=None)
+
 # -----------------------------
 # GESTION DES CLIENTS
 # -----------------------------
