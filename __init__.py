@@ -146,6 +146,24 @@ def tasks():
     tasks = conn.execute("SELECT * FROM tasks").fetchall()
     conn.close()
     return render_template('tasks.html', tasks=tasks)
+
+@app.route('/ajouter_task', methods=['POST'])
+def ajouter_task():
+    title = request.form.get('title')
+    description = request.form.get('description')
+    status = request.form.get('status', 'pending')
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute(
+        'INSERT INTO tasks (title, description, status) VALUES (?, ?, ?)',
+        (title, description, status)
+    )
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('tasks'))
+
 # ---------- RUN ----------
 
 if __name__ == "__main__":
