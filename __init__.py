@@ -137,11 +137,9 @@ def enregistrer_client():
 # GESTION DES LIVRES
 # -----------------------------
 
+# Afficher tous les livres
 @app.route('/livres/')
 def lire_livres():
-    if not est_authentifie():
-        return redirect(url_for('authentification'))
-
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM livres;')
@@ -149,12 +147,9 @@ def lire_livres():
     conn.close()
     return render_template('livres.html', livres=livres)
 
-
+# Ajouter un livre
 @app.route('/ajouter_livre', methods=['GET', 'POST'])
 def ajouter_livre():
-    if not est_authentifie() or not est_admin():
-        return redirect(url_for('authentification'))
-
     if request.method == 'POST':
         titre = request.form['titre']
         auteur = request.form['auteur']
@@ -168,9 +163,31 @@ def ajouter_livre():
         conn.commit()
         conn.close()
         return redirect(url_for('lire_livres'))
-
     return render_template('ajouter_livre.html')
 
+# Emprunter un livre
+@app.route('/emprunter/<int:livre_id>', methods=['POST'])
+def emprunter_livre(livre_id):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    # Vérifie le stock
+    cursor.execute('SELECT stock FROM livres WHERE id = ?', (livre_id,))
+    livre = cursor.fetchone()
+    if livre and livre[0] > 0:
+        cursor.execute('UPDATE livres SET stock = stock - 1 WHERE id = ?', (livre_id,))
+        conn.commit()
+    conn.close()
+    return redirect(url_for('lire_livres'))
+
+# Retourner un livre
+@app.route('/retour/<int:livre_id>', methods=['POST'])
+def retour_livre(livre_id):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('UPDATE livres SET stock = stock + 1 WHERE id = ?', (livre_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('lire_livres'))
 
 # -----------------------------
 # GESTIONNAIRE DE TÂCHES
