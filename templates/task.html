@@ -1,0 +1,24 @@
+!DOCTYPE html>
+<html>
+<head>
+    <title>Gestionnaire de tâches</title>
+</head>
+<body>
+
+<h1>Gestionnaire de tâches</h1>
+
+<ul>
+{% for task in tasks %}
+    <li>
+        <strong>{{ task.title }}</strong> - {{ task.status }}<br>
+        {{ task.description }}
+    </li>
+{% else %}
+    <li>Aucune tâche pour le moment.</li>
+{% endfor %}
+</ul>
+
+<a href="/">Retour accueil</a>
+
+</body>
+</html>
