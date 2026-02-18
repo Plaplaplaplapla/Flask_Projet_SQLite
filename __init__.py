@@ -109,11 +109,6 @@ def enregistrer_client():
 
     return render_template('formulaire.html')
 
-# ---------- RUN ----------
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
 
 @app.route('/livres/')
 def lire_livres():
@@ -123,6 +118,10 @@ def lire_livres():
     livres = cursor.fetchall()
     conn.close()
     return render_template('livres.html', livres=livres)
+
+
+
+
 
 # Ajouter un livre
 @app.route('/ajouter_livre', methods=['GET', 'POST'])
@@ -147,3 +146,8 @@ def tasks():
     tasks = conn.execute("SELECT * FROM tasks").fetchall()
     conn.close()
     return render_template('tasks.html', tasks=tasks)
+# ---------- RUN ----------
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
