@@ -8,25 +8,32 @@ import sqlite3
 app = Flask(__name__)                                                                                                                  
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
 
-# ---------- AUTH ----------
+# -----------------------------
+# FONCTIONS UTILES
+# -----------------------------
 
 def est_authentifie():
+    """Vérifie si un utilisateur est connecté"""
     return session.get('authentifie')
 
-def est_user_authentifie():
-    return session.get('user_auth')
 
-# ---------- ROUTES ----------
+def est_admin():
+    """Vérifie si l'utilisateur est admin"""
+    return session.get('role') == 'admin'
+
+
+# -----------------------------
+# ROUTES PRINCIPALES
+# -----------------------------
 
 @app.route('/')
-def hello_world():
+def accueil():
     return render_template('acceuil.html')
 
-@app.route('/lecture')
-def lecture():
-    if not est_authentifie():
-        return redirect(url_for('authentification'))
-    return "<h2>Bravo, vous êtes authentifié</h2>"
+
+# -----------------------------
+# AUTHENTIFICATION
+# -----------------------------
 
 @app.route('/authentification', methods=['GET', 'POST'])
 def authentification():
@@ -34,35 +41,40 @@ def authentification():
         username = request.form['username']
         password = request.form['password']
 
-        # Vérification admin
+        # Admin
         if username == 'admin' and password == 'password':
             session['authentifie'] = True
             session['role'] = 'admin'
-            return redirect(url_for('hello_world'))
+            return redirect(url_for('accueil'))
 
-        # Vérification utilisateur classique
+        # Utilisateur classique
         elif username == 'user' and password == '12345':
             session['authentifie'] = True
             session['role'] = 'user'
-            return redirect(url_for('hello_world'))
+            return redirect(url_for('accueil'))
 
         # Mauvais identifiants
-        else:
-            return render_template('formulaire_authentification.html', error=True)
+        return render_template('formulaire_authentification.html', error=True)
 
     return render_template('formulaire_authentification.html', error=False)
 
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('accueil'))
 
-# ---------- FICHE NOM ----------
+
+# -----------------------------
+# GESTION DES CLIENTS
+# -----------------------------
 
 @app.route('/fiche_nom/', methods=['GET', 'POST'])
 def fiche_nom():
     if not est_authentifie():
-        return redirect(url_for('authentification'))  # plus 'auth_user'
+        return redirect(url_for('authentification'))
 
     data = []
-
     if request.method == 'POST':
         nom = request.form['nom']
         conn = sqlite3.connect('database.db')
@@ -73,10 +85,12 @@ def fiche_nom():
 
     return render_template('recherche_nom.html', data=data)
 
-# ---------- BDD ----------
 
 @app.route('/consultation/')
 def ReadBDD():
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
+
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM clients;')
@@ -84,8 +98,12 @@ def ReadBDD():
     conn.close()
     return render_template('read_data.html', data=data)
 
+
 @app.route('/fiche_client/<int:post_id>')
 def Readfiche(post_id):
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
+
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM clients WHERE id = ?', (post_id,))
@@ -93,12 +111,15 @@ def Readfiche(post_id):
     conn.close()
     return render_template('read_data.html', data=data)
 
+
 @app.route('/enregistrer_client', methods=['GET', 'POST'])
 def enregistrer_client():
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
+
     if request.method == 'POST':
         nom = request.form['nom']
         prenom = request.form['prenom']
-
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
         cursor.execute(
@@ -107,13 +128,20 @@ def enregistrer_client():
         )
         conn.commit()
         conn.close()
-        return redirect('/consultation/')
+        return redirect(url_for('ReadBDD'))
 
     return render_template('formulaire.html')
 
 
+# -----------------------------
+# GESTION DES LIVRES
+# -----------------------------
+
 @app.route('/livres/')
 def lire_livres():
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
+
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM livres;')
@@ -122,35 +150,49 @@ def lire_livres():
     return render_template('livres.html', livres=livres)
 
 
-
-
-
-# Ajouter un livre
 @app.route('/ajouter_livre', methods=['GET', 'POST'])
 def ajouter_livre():
+    if not est_authentifie() or not est_admin():
+        return redirect(url_for('authentification'))
+
     if request.method == 'POST':
         titre = request.form['titre']
         auteur = request.form['auteur']
         stock = int(request.form['stock'])
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO livres (titre, auteur, stock) VALUES (?, ?, ?)', (titre, auteur, stock))
+        cursor.execute(
+            'INSERT INTO livres (titre, auteur, stock) VALUES (?, ?, ?)',
+            (titre, auteur, stock)
+        )
         conn.commit()
         conn.close()
-        return redirect('/livres/')
+        return redirect(url_for('lire_livres'))
+
     return render_template('ajouter_livre.html')
-    
-##Gestionnaire
+
+
+# -----------------------------
+# GESTIONNAIRE DE TÂCHES
+# -----------------------------
+
 @app.route('/tasks')
 def tasks():
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
+
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     tasks = conn.execute("SELECT * FROM tasks").fetchall()
     conn.close()
     return render_template('tasks.html', tasks=tasks)
 
+
 @app.route('/ajouter_task', methods=['POST'])
 def ajouter_task():
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
+
     title = request.form.get('title')
     description = request.form.get('description')
     status = request.form.get('status', 'pending')
@@ -163,13 +205,12 @@ def ajouter_task():
     )
     conn.commit()
     conn.close()
-
     return redirect(url_for('tasks'))
 
 
-
-# ---------- RUN ----------
+# -----------------------------
+# RUN
+# -----------------------------
 
 if __name__ == "__main__":
     app.run(debug=True)
-
