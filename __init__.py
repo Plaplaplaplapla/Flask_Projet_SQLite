@@ -66,7 +66,7 @@ def logout():
 
 
 
-app.route('/ajouter_utilisateur', methods=['GET', 'POST'])
+@app.route('/ajouter_utilisateur', methods=['GET', 'POST'])
 def ajouter_utilisateur():
     # Vérifie que l'admin est connecté
     if not est_authentifie() or session.get('role') != 'admin':
