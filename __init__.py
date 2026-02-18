@@ -243,13 +243,27 @@ def ajouter_task():
     title = request.form.get('title')
     description = request.form.get('description')
     status = request.form.get('status', 'pending')
+    due_date = request.form.get('due_date')  # YYYY-MM-DD ou None
 
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     cursor.execute(
-        'INSERT INTO tasks (title, description, status) VALUES (?, ?, ?)',
-        (title, description, status)
+        'INSERT INTO tasks (title, description, status, due_date) VALUES (?, ?, ?, ?)',
+        (title, description, status, due_date)
     )
+    conn.commit()
+    conn.close()
+    return redirect(url_for('tasks'))
+
+
+@app.route('/supprimer_task/<int:task_id>', methods=['POST'])
+def supprimer_task(task_id):
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
     conn.commit()
     conn.close()
     return redirect(url_for('tasks'))
