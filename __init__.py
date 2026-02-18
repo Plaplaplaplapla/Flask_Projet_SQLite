@@ -31,33 +31,35 @@ def lecture():
 @app.route('/authentification', methods=['GET', 'POST'])
 def authentification():
     if request.method == 'POST':
-        if request.form['username'] == 'admin' and request.form['password'] == 'password':
+        username = request.form['username']
+        password = request.form['password']
+
+        # Vérification admin
+        if username == 'admin' and password == 'password':
             session['authentifie'] = True
-            return redirect(url_for('lecture'))
+            session['role'] = 'admin'
+            return redirect(url_for('hello_world'))
+
+        # Vérification utilisateur classique
+        elif username == 'user' and password == '12345':
+            session['authentifie'] = True
+            session['role'] = 'user'
+            return redirect(url_for('hello_world'))
+
+        # Mauvais identifiants
         else:
             return render_template('formulaire_authentification.html', error=True)
 
     return render_template('formulaire_authentification.html', error=False)
 
-# ---------- AUTH USER ----------
 
-@app.route('/auth_user', methods=['GET', 'POST'])
-def auth_user():
-    if request.method == 'POST':
-        if request.form['username'] == 'user' and request.form['password'] == '12345':
-            session['user_auth'] = True
-            return redirect(url_for('fiche_nom'))
-        else:
-            return render_template('formulaire_auth_user.html', error=True)
-
-    return render_template('formulaire_auth_user.html', error=False)
 
 # ---------- FICHE NOM ----------
 
 @app.route('/fiche_nom/', methods=['GET', 'POST'])
 def fiche_nom():
-    if not est_user_authentifie():
-        return redirect(url_for('auth_user'))
+    if not est_authentifie():
+        return redirect(url_for('authentification'))  # plus 'auth_user'
 
     data = []
 
@@ -163,6 +165,8 @@ def ajouter_task():
     conn.close()
 
     return redirect(url_for('tasks'))
+
+
 
 # ---------- RUN ----------
 
