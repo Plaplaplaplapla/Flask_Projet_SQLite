@@ -68,14 +68,16 @@ def logout():
 
 @app.route('/ajouter_utilisateur', methods=['GET', 'POST'])
 def ajouter_utilisateur():
-    # Vérifie que l'admin est connecté
-    if not est_authentifie() or session.get('role') != 'admin':
+    if not est_authentifie() or not est_admin():
         return redirect(url_for('authentification'))
 
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         role = request.form.get('role', 'user')
+
+        if not username or not password:
+            return render_template('ajouter_user.html', error="Veuillez remplir tous les champs.")
 
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
