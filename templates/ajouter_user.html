@@ -82,6 +82,21 @@
             color: #2e7d32;
         }
     </style>
+    <script>
+        function validateForm() {
+            let username = document.getElementById("username").value.trim();
+            let password = document.getElementById("password").value.trim();
+            if (username === "" || password === "") {
+                alert("Veuillez remplir tous les champs !");
+                return false; // Empêche l'envoi du formulaire
+            }
+            if (password.length < 4) {
+                alert("Le mot de passe doit faire au moins 4 caractères !");
+                return false;
+            }
+            return true;
+        }
+    </script>
 </head>
 <body>
     <div class="form-container">
@@ -91,7 +106,7 @@
             <p class="error">{{ error }}</p>
         {% endif %}
 
-        <form action="{{ url_for('ajouter_utilisateur') }}" method="post">
+        <form action="{{ url_for('ajouter_utilisateur') }}" method="post" onsubmit="return validateForm()">
             <label for="username">Nom d'utilisateur :</label>
             <input type="text" id="username" name="username" required>
 
@@ -102,3 +117,12 @@
             <select id="role" name="role">
                 <option value="user" selected>Utilisateur</option>
                 <option value="admin">Admin</option>
+            </select>
+
+            <input type="submit" value="Ajouter l'utilisateur">
+        </form>
+        <a href="{{ url_for('accueil') }}">Retour à l'accueil</a>
+    </div>
+</body>
+</html>
+
