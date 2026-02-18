@@ -66,6 +66,22 @@ def logout():
 
 
 
+# Route pour afficher la liste des utilisateurs
+@app.route('/utilisateurs/')
+def liste_utilisateurs():
+    if not est_authentifie() or not est_admin():
+        return redirect(url_for('authentification'))
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT id, username, role FROM utilisateurs')
+    utilisateurs = cursor.fetchall()
+    conn.close()
+
+    return render_template('liste_utilisateurs.html', utilisateurs=utilisateurs)
+
+
+# Route pour ajouter un utilisateur
 @app.route('/ajouter_utilisateur', methods=['GET', 'POST'])
 def ajouter_utilisateur():
     if not est_authentifie() or not est_admin():
