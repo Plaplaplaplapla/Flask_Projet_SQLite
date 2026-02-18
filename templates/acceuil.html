@@ -183,6 +183,14 @@
         <a href="{{ url_for('tasks') }}">Ouvrir le gestionnaire</a>
     {% endif %}
      </div>
+
+        <div class="card">
+    <h3>Ajouter un utilisateur</h3>
+    <p>Créer un nouvel utilisateur pour accéder à la bibliothèque.</p>
+    {% if session.get('role') == 'admin' %}
+        <a href="{{ url_for('ajouter_utilisateur') }}">Ajouter</a>
+    {% endif %}
+</div>
     </div>
 </div>
 
