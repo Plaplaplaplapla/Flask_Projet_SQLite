@@ -259,29 +259,109 @@ def ajouter_livre():
         return redirect(url_for('lire_livres'))
     return render_template('ajouter_livre.html')
 
-# Emprunter un livre
-@app.route('/emprunter/<int:livre_id>', methods=['POST'])
-def emprunter_livre(livre_id):
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-    # Vérifie le stock
-    cursor.execute('SELECT stock FROM livres WHERE id = ?', (livre_id,))
-    livre = cursor.fetchone()
-    if livre and livre[0] > 0:
-        cursor.execute('UPDATE livres SET stock = stock - 1 WHERE id = ?', (livre_id,))
-        conn.commit()
-    conn.close()
-    return redirect(url_for('lire_livres'))
+@app.route('/emprunts/')
+def emprunts():
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
 
-# Retourner un livre
-@app.route('/retour/<int:livre_id>', methods=['POST'])
-def retour_livre(livre_id):
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    cursor.execute('UPDATE livres SET stock = stock + 1 WHERE id = ?', (livre_id,))
-    conn.commit()
+
+    cursor.execute("""
+        SELECT e.id, e.borrowed_at, e.due_at, e.returned_at, e.status,
+               c.id, c.nom, c.prenom,
+               l.id, l.titre, l.auteur
+        FROM emprunts e
+        JOIN clients c ON c.id = e.client_id
+        JOIN livres  l ON l.id = e.livre_id
+        ORDER BY e.id DESC
+        LIMIT 200
+    """)
+    emprunts = cursor.fetchall()
     conn.close()
-    return redirect(url_for('lire_livres'))
+
+    return render_template('emprunts.html', emprunts=emprunts)
+    
+@app.route('/emprunter_livre/<int:livre_id>', methods=['GET', 'POST'])
+def emprunter_livre_flow(livre_id):
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # Récupérer le livre
+    cursor.execute('SELECT id, titre, auteur, stock FROM livres WHERE id = ?', (livre_id,))
+    livre = cursor.fetchone()
+    if not livre:
+        conn.close()
+        return "Livre introuvable", 404
+
+    # Liste des clients (pour choisir qui emprunte)
+    cursor.execute('SELECT id, nom, prenom FROM clients ORDER BY nom, prenom')
+    clients = cursor.fetchall()
+
+    error = None
+
+    if request.method == 'POST':
+        client_id = request.form.get('client_id')
+        due_at = request.form.get('due_at')  # optionnel (YYYY-MM-DD)
+
+        if not client_id:
+            error = "Veuillez choisir un client."
+        else:
+            # Vérifier stock > 0
+            cursor.execute('SELECT stock FROM livres WHERE id = ?', (livre_id,))
+            stock = cursor.fetchone()[0]
+            if stock <= 0:
+                error = "Stock insuffisant."
+            else:
+                # Créer emprunt
+                cursor.execute(
+                    'INSERT INTO emprunts (client_id, livre_id, due_at, status) VALUES (?, ?, ?, ?)',
+                    (int(client_id), livre_id, due_at if due_at else None, 'ongoing')
+                )
+                # Décrémenter stock
+                cursor.execute('UPDATE livres SET stock = stock - 1 WHERE id = ?', (livre_id,))
+                conn.commit()
+                conn.close()
+                return redirect(url_for('emprunts'))
+
+    conn.close()
+    return render_template('emprunter_form.html', livre=livre, clients=clients, error=error)
+
+@app.route('/retour_emprunt/<int:emprunt_id>', methods=['POST'])
+def retour_emprunt(emprunt_id):
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # Trouver l'emprunt en cours
+    cursor.execute("""
+        SELECT livre_id, status
+        FROM emprunts
+        WHERE id = ?
+    """, (emprunt_id,))
+    row = cursor.fetchone()
+
+    if row:
+        livre_id, status = row
+        if status == 'ongoing':
+            # Clôturer emprunt
+            cursor.execute("""
+                UPDATE emprunts
+                SET returned_at = CURRENT_TIMESTAMP, status = 'returned'
+                WHERE id = ?
+            """, (emprunt_id,))
+            # Remonter stock
+            cursor.execute('UPDATE livres SET stock = stock + 1 WHERE id = ?', (livre_id,))
+            conn.commit()
+
+    conn.close()
+    return redirect(url_for('emprunts'))
+
 
 # -----------------------------
 # GESTIONNAIRE DE TÂCHES
