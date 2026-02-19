@@ -24,12 +24,14 @@
   </style>
 </head>
 <body>
+
 <header>
   <h1>Emprunts</h1>
 </header>
 
 <div class="container">
   <div class="card">
+
     <div class="topbar">
       <a class="btnlink" href="{{ url_for('accueil') }}">Retour accueil</a>
       <a class="btnlink" href="{{ url_for('lire_livres') }}">Aller aux livres</a>
@@ -38,36 +40,36 @@
     <table>
       <tr>
         <th>ID</th>
-        <th>Client</th>
+        <th>Utilisateur</th>
         <th>Livre</th>
-        <th>Emprunté le</th>
-        <th>Retour prévu</th>
-        <th>Retourné le</th>
+        <th>Date emprunt</th>
+        <th>Date retour</th>
         <th>Statut</th>
         <th>Action</th>
       </tr>
 
       {% for e in emprunts %}
-      {# e = (e.id, borrowed_at, due_at, returned_at, status, client_id, nom, prenom, livre_id, titre, auteur) #}
+      {# e = (id, date_emprunt, date_retour, user_id, username, role, livre_id, titre, auteur) #}
       <tr>
         <td>{{ e[0] }}</td>
-        <td>{{ e[6] }} {{ e[7] }} (id={{ e[5] }})</td>
-        <td>{{ e[9] }} — {{ e[10] }} (id={{ e[8] }})</td>
+        <td>{{ e[4] }} ({{ e[5] }}) - id={{ e[3] }}</td>
+        <td>{{ e[7] }} — {{ e[8] }} (id={{ e[6] }})</td>
         <td>{{ e[1] }}</td>
         <td>{{ e[2] if e[2] else "-" }}</td>
-        <td>{{ e[3] if e[3] else "-" }}</td>
         <td>
-          {% if e[4] == 'ongoing' %}
-            <span class="tag ongoing">en cours</span>
-          {% else %}
+          {% if e[2] %}
             <span class="tag returned">retourné</span>
+          {% else %}
+            <span class="tag ongoing">en cours</span>
           {% endif %}
         </td>
         <td>
-          {% if e[4] == 'ongoing' %}
-          <form method="post" action="{{ url_for('retour_emprunt', emprunt_id=e[0]) }}" onsubmit="return confirm('Confirmer le retour ?');">
-            <button type="submit">Retour</button>
-          </form>
+          {% if not e[2] %}
+            <form method="post"
+                  action="{{ url_for('retour_emprunt', emprunt_id=e[0]) }}"
+                  onsubmit="return confirm('Confirmer le retour ?');">
+              <button type="submit">Retour</button>
+            </form>
           {% else %}
             -
           {% endif %}
@@ -78,5 +80,7 @@
 
   </div>
 </div>
+
 </body>
 </html>
+
