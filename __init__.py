@@ -38,22 +38,28 @@ def accueil():
 @app.route('/authentification', methods=['GET', 'POST'])
 def authentification():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
 
-        # Admin
-        if username == 'admin' and password == 'password':
+        conn = sqlite3.connect('database.db')
+        cursor = conn.cursor()
+
+        # On récupère l'utilisateur en base
+        cursor.execute(
+            'SELECT id, username, password, role FROM utilisateurs WHERE username = ?',
+            (username,)
+        )
+        user = cursor.fetchone()
+        conn.close()
+
+        # user = (id, username, password_db, role)
+        if user and user[2] == password:
             session['authentifie'] = True
-            session['role'] = 'admin'
+            session['user_id'] = user[0]
+            session['username'] = user[1]
+            session['role'] = user[3]
             return redirect(url_for('accueil'))
 
-        # Utilisateur classique
-        elif username == 'user' and password == '12345':
-            session['authentifie'] = True
-            session['role'] = 'user'
-            return redirect(url_for('accueil'))
-
-        # Mauvais identifiants
         return render_template('formulaire_authentification.html', error=True)
 
     return render_template('formulaire_authentification.html', error=False)
