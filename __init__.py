@@ -268,12 +268,14 @@ def emprunts():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT e.id, e.borrowed_at, e.due_at, e.returned_at, e.status,
-               c.id, c.nom, c.prenom,
+        SELECT e.id,
+               e.date_emprunt,
+               e.date_retour,
+               u.id, u.username, u.role,
                l.id, l.titre, l.auteur
         FROM emprunts e
-        JOIN clients c ON c.id = e.client_id
-        JOIN livres  l ON l.id = e.livre_id
+        JOIN utilisateurs u ON u.id = e.utilisateur_id
+        JOIN livres l ON l.id = e.livre_id
         ORDER BY e.id DESC
         LIMIT 200
     """)
@@ -281,6 +283,7 @@ def emprunts():
     conn.close()
 
     return render_template('emprunts.html', emprunts=emprunts)
+
     
 @app.route('/emprunter_livre/<int:livre_id>', methods=['GET', 'POST'])
 def emprunter_livre_flow(livre_id):
@@ -290,45 +293,42 @@ def emprunter_livre_flow(livre_id):
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
-    # Récupérer le livre
     cursor.execute('SELECT id, titre, auteur, stock FROM livres WHERE id = ?', (livre_id,))
     livre = cursor.fetchone()
     if not livre:
         conn.close()
         return "Livre introuvable", 404
 
-    # Liste des clients (pour choisir qui emprunte)
-    cursor.execute('SELECT id, nom, prenom FROM clients ORDER BY nom, prenom')
-    clients = cursor.fetchall()
+    # Liste des utilisateurs (pas des clients)
+    cursor.execute('SELECT id, username, role FROM utilisateurs ORDER BY username')
+    utilisateurs = cursor.fetchall()
 
     error = None
 
     if request.method == 'POST':
-        client_id = request.form.get('client_id')
-        due_at = request.form.get('due_at')  # optionnel (YYYY-MM-DD)
+        utilisateur_id = request.form.get('utilisateur_id')
 
-        if not client_id:
-            error = "Veuillez choisir un client."
+        if not utilisateur_id:
+            error = "Veuillez choisir un utilisateur."
         else:
-            # Vérifier stock > 0
             cursor.execute('SELECT stock FROM livres WHERE id = ?', (livre_id,))
             stock = cursor.fetchone()[0]
+
             if stock <= 0:
                 error = "Stock insuffisant."
             else:
-                # Créer emprunt
                 cursor.execute(
-                    'INSERT INTO emprunts (client_id, livre_id, due_at, status) VALUES (?, ?, ?, ?)',
-                    (int(client_id), livre_id, due_at if due_at else None, 'ongoing')
+                    'INSERT INTO emprunts (utilisateur_id, livre_id) VALUES (?, ?)',
+                    (int(utilisateur_id), livre_id)
                 )
-                # Décrémenter stock
                 cursor.execute('UPDATE livres SET stock = stock - 1 WHERE id = ?', (livre_id,))
                 conn.commit()
                 conn.close()
                 return redirect(url_for('emprunts'))
 
     conn.close()
-    return render_template('emprunter_form.html', livre=livre, clients=clients, error=error)
+    return render_template('emprunter_form.html', livre=livre, utilisateurs=utilisateurs, error=error)
+
 
 @app.route('/retour_emprunt/<int:emprunt_id>', methods=['POST'])
 def retour_emprunt(emprunt_id):
@@ -338,29 +338,22 @@ def retour_emprunt(emprunt_id):
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
-    # Trouver l'emprunt en cours
-    cursor.execute("""
-        SELECT livre_id, status
-        FROM emprunts
-        WHERE id = ?
-    """, (emprunt_id,))
+    cursor.execute("SELECT livre_id, date_retour FROM emprunts WHERE id = ?", (emprunt_id,))
     row = cursor.fetchone()
 
     if row:
-        livre_id, status = row
-        if status == 'ongoing':
-            # Clôturer emprunt
-            cursor.execute("""
-                UPDATE emprunts
-                SET returned_at = CURRENT_TIMESTAMP, status = 'returned'
-                WHERE id = ?
-            """, (emprunt_id,))
-            # Remonter stock
-            cursor.execute('UPDATE livres SET stock = stock + 1 WHERE id = ?', (livre_id,))
+        livre_id, date_retour = row
+        if date_retour is None:
+            cursor.execute(
+                "UPDATE emprunts SET date_retour = CURRENT_TIMESTAMP WHERE id = ?",
+                (emprunt_id,)
+            )
+            cursor.execute("UPDATE livres SET stock = stock + 1 WHERE id = ?", (livre_id,))
             conn.commit()
 
     conn.close()
     return redirect(url_for('emprunts'))
+
 
 
 # -----------------------------
