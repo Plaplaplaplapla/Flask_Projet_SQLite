@@ -111,6 +111,27 @@ def ajouter_utilisateur():
 
     return render_template('ajouter_user.html', error=None)
 
+
+@app.route('/supprimer_utilisateur/<int:user_id>', methods=['POST'])
+def supprimer_utilisateur(user_id):
+    if not est_authentifie() or not est_admin():
+        return redirect(url_for('authentification'))
+
+    # Empêcher un admin de se supprimer lui-même
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT username FROM utilisateurs WHERE id = ?', (user_id,))
+    user = cursor.fetchone()
+
+    if user and user[0] != 'admin':
+        cursor.execute('DELETE FROM utilisateurs WHERE id = ?', (user_id,))
+        conn.commit()
+
+    conn.close()
+    return redirect(url_for('liste_utilisateurs'))
+
+
 # -----------------------------
 # GESTION DES CLIENTS
 # -----------------------------
