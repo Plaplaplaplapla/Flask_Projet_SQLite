@@ -1,143 +1,90 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Bibliothèque – Livres</title>
-    <style>
-        body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(
-                rgba(0,0,0,0.55),
-                rgba(0,0,0,0.55)
-            ),
-            url("/static/bibliotheque.jpg") no-repeat center center fixed;
-            background-size: cover;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 50px auto;
-            background: rgba(255,255,255,0.95);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .actions-top {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        a.button-link {
-            text-decoration: none;
-            background: #4CAF50;
-            color: white;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-weight: bold;
-        }
-
-        a.button-link:hover {
-            background: #45a049;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-        }
-
-        th {
-            background: #2c3e50;
-            color: white;
-        }
-
-        tr:hover {
-            background: #f2f2f2;
-        }
-
-        form {
-            display: inline;
-        }
-
-        button {
-            background: #27ae60;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #2ecc71;
-        }
-
-        button.disabled {
-            background: #aaa;
-            cursor: not-allowed;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Livres</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)),
+                  url("{{ url_for('static', filename='bibliotheque.png') }}") center/cover no-repeat fixed;
+    }
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: rgba(255,255,255,0.95);
+      padding: 22px;
+      border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    }
+    h1 { margin: 0 0 18px; text-align: center; }
+    .topbar { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+    .btnlink {
+      text-decoration: none;
+      color: white;
+      background: #2c3e50;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: bold;
+      display: inline-block;
+    }
+    .btnlink:hover { opacity: .92; }
+    .btnadd { background: #27ae60; }
+    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 10px; }
+    th, td { padding: 12px; border-bottom: 1px solid #e6e6e6; text-align: left; }
+    th { background: #2c3e50; color: #fff; }
+    tr:hover td { background: #f6f6f6; }
+    form { display: inline; }
+    button {
+      background: #27ae60;
+      color: white;
+      border: none;
+      padding: 7px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      margin-right: 6px;
+    }
+    button:hover { opacity: .92; }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    .stock { font-weight: bold; }
+  </style>
 </head>
-
 <body>
-<div class="container">
+  <div class="container">
     <h1>Liste des livres</h1>
 
-    <div class="actions-top">
-        <a class="button-link" href="{{ url_for('accueil') }}">← Retour à l’accueil</a>
-        <a class="button-link" href="{{ url_for('ajouter_livre') }}">+ Ajouter un livre</a>
+    <div class="topbar">
+      <a class="btnlink" href="{{ url_for('accueil') }}">Retour vers l'accueil</a>
+      <a class="btnlink btnadd" href="{{ url_for('ajouter_livre') }}">Ajouter un livre</a>
     </div>
 
     <table>
-        <tr>
-            <th>Titre</th>
-            <th>Auteur</th>
-            <th>Stock</th>
-            <th>Actions</th>
-        </tr>
+      <tr>
+        <th>Titre</th>
+        <th>Auteur</th>
+        <th>Stock</th>
+        <th>Actions</th>
+      </tr>
 
-        {% for livre in livres %}
-        <tr>
-            <td>{{ livre[1] }}</td>
-            <td>{{ livre[2] }}</td>
-            <td>{{ livre[3] }} / {{ livre[4] }}</td>
-            <td>
-                {% if livre[3] > 0 %}
-                <form action="{{ url_for('emprunter_livre', livre_id=livre[0]) }}" method="post">
-                    <button>Emprunter</button>
-                </form>
-                {% endif %}
+      {% for livre in livres %}
+      <tr>
+        <td>{{ livre[1] }}</td>
+        <td>{{ livre[2] }}</td>
+        <td class="stock">{{ livre[3] }} / {{ livre[4] }}</td>
+        <td>
+          <form action="{{ url_for('emprunter_livre', livre_id=livre[0]) }}" method="post">
+            <button {% if livre[3] <= 0 %}disabled{% endif %}>Emprunter</button>
+          </form>
 
-                {% if livre[3] < livre[4] %}
-                <form action="{{ url_for('retour_livre', livre_id=livre[0]) }}" method="post">
-                    <button>Retour</button>
-                </form>
-                {% else %}
-                <button class="disabled" disabled>Retour</button>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
+          <form action="{{ url_for('retour_livre', livre_id=livre[0]) }}" method="post">
+            <button {% if livre[3] >= livre[4] %}disabled{% endif %}>Retour</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
     </table>
-</div>
-</body>
-</html>
-
-    </table>
-</div>
+  </div>
 </body>
 </html>
