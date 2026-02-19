@@ -24,7 +24,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 40px auto;
             padding: 20px;
             background-color: white;
@@ -63,6 +63,29 @@
             font-weight: bold;
         }
 
+        form {
+            display: inline;
+        }
+
+        button {
+            background-color: #c0392b;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background-color: #e74c3c;
+        }
+
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+
         a.button {
             display: inline-block;
             text-decoration: none;
@@ -91,6 +114,7 @@
                     <th>ID</th>
                     <th>Nom d'utilisateur</th>
                     <th>Rôle</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -98,7 +122,20 @@
                 <tr>
                     <td>{{ user[0] }}</td>
                     <td>{{ user[1] }}</td>
-                    <td class="{{ 'role-admin' if user[2] == 'admin' else 'role-user' }}">{{ user[2] }}</td>
+                    <td class="{{ 'role-admin' if user[2] == 'admin' else 'role-user' }}">
+                        {{ user[2] }}
+                    </td>
+                    <td>
+                        {% if user[2] != 'admin' %}
+                        <form action="{{ url_for('supprimer_utilisateur', user_id=user[0]) }}"
+                              method="post"
+                              onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                            <button type="submit">Supprimer</button>
+                        </form>
+                        {% else %}
+                        <button disabled>Admin</button>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
