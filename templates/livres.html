@@ -1,106 +1,212 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Livres</title>
-  <style>
-    body{
-      font-family: Arial, sans-serif;
-      margin:0;
-      min-height:100vh;
-      background:
-        linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)),
-        url("{{ url_for('static', filename='bibliotheque.png') }}") center/cover no-repeat fixed;
-    }
-    .container{
-      max-width: 900px;
-      margin: 40px auto;
-      background: rgba(255,255,255,0.95);
-      padding: 22px;
-      border-radius: 12px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
-    }
-    h1{ margin:0 0 18px; text-align:center; }
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:16px;
-    }
-    .btnlink{
-      text-decoration:none;
-      color:white;
-      background:#2c3e50;
-      padding:10px 14px;
-      border-radius:8px;
-      font-weight:bold;
-      display:inline-block;
-    }
-    .btnlink:hover{ opacity:.92; }
-    .btnadd{ background:#27ae60; }
-    table{
-      width:100%;
-      border-collapse:collapse;
-      overflow:hidden;
-      border-radius:10px;
-    }
-    th, td{
-      padding:12px;
-      border-bottom:1px solid #e6e6e6;
-      text-align:left;
-    }
-    th{ background:#2c3e50; color:#fff; }
-    tr:hover td{ background:#f6f6f6; }
-    form{ display:inline; }
-    button{
-      background:#27ae60;
-      color:white;
-      border:none;
-      padding:7px 12px;
-      border-radius:7px;
-      cursor:pointer;
-      margin-right:6px;
-    }
-    button:hover{ opacity:.92; }
-    button:disabled{ background:#aaa; cursor:not-allowed; }
-    .stock{ font-weight:bold; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Bibliothèque - Livres</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Fond image optionnel (si le fichier n'existe pas, ce n'est pas bloquant) */
+        .page-bg {
+            min-height: 100vh;
+            background:
+                linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)),
+                url("{{ url_for('static', filename='library.png') }}") center/cover no-repeat fixed;
+            padding-bottom: 40px;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px 40px;
+            text-align: center;
+        }
+
+        header h1 { font-size: 2em; margin-bottom: 5px; }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            background: rgba(255,255,255,0.08);
+        }
+
+        nav a:hover { background-color: #34495e; }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background-color: rgba(255,255,255,0.95);
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+            padding: 20px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .btn {
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            background-color: #2c3e50;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            font-weight: 600;
+        }
+        .btn:hover { background-color: #34495e; }
+
+        .btn-green { background-color: #27ae60; }
+        .btn-green:hover { background-color: #2ecc71; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e6e6e6;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+        }
+
+        tr:hover td { background: #f6f6f6; }
+
+        form { display: inline; }
+
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, opacity 0.3s;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+        button:hover { background-color: #2ecc71; }
+
+        button:disabled {
+            background: #b5b5b5;
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        .muted {
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: #eaeaea;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-  <h1>Liste des livres</h1>
 
-  <div class="topbar">
-    <a class="btnlink" href="{{ url_for('accueil') }}">Retour vers l'accueil</a>
-    <a class="btnlink btnadd" href="{{ url_for('ajouter_livre') }}">Ajouter un livre</a>
-  </div>
+<div class="page-bg">
+    <header>
+        <h1>Catalogue des livres</h1>
+        <nav>
+            <a href="{{ url_for('accueil') }}">Accueil</a>
+            <a href="{{ url_for('lire_livres') }}">Livres</a>
+            <a href="{{ url_for('ReadBDD') }}">Clients</a>
+            {% if session.get('authentifie') %}
+                <a href="{{ url_for('logout') }}">Déconnexion</a>
+            {% else %}
+                <a href="{{ url_for('authentification') }}">Connexion</a>
+            {% endif %}
+        </nav>
+    </header>
 
-  <table>
-    <tr>
-      <th>Titre</th>
-      <th>Auteur</th>
-      <th>Stock</th>
-      <th>Actions</th>
-    </tr>
+    <div class="container">
+        <div class="card">
+            <div class="topbar">
+                <a class="btn" href="{{ url_for('accueil') }}">Retour accueil</a>
+                {% if session.get('role') == 'admin' %}
+                    <a class="btn btn-green" href="{{ url_for('ajouter_livre') }}">Ajouter un livre</a>
+                {% endif %}
+            </div>
 
-    {% for livre in livres %}
-    <tr>
-      <td>{{ livre[1] }}</td>
-      <td>{{ livre[2] }}</td>
-      <td class="stock">{{ livre[3] }}</td>
-      <td>
-        <form action="{{ url_for('emprunter_livre', livre_id=livre[0]) }}" method="post">
-          <button {% if livre[3] <= 0 %}disabled{% endif %}>Emprunter</button>
-        </form>
+            <table>
+                <tr>
+                    <th>Titre</th>
+                    <th>Auteur</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                </tr>
 
-        <form action="{{ url_for('retour_livre', livre_id=livre[0]) }}" method="post">
-          <button>Retour</button>
-        </form>
-      </td>
-    </tr>
-    {% endfor %}
-  </table>
+                {% for livre in livres %}
+                <tr>
+                    <td>{{ livre[1] }}</td>
+                    <td>{{ livre[2] }}</td>
+                    <td>{{ livre[3] }}</td>
+                    <td>
+                        <form action="{{ url_for('emprunter_livre', livre_id=livre[0]) }}" method="post">
+                            <button {% if livre[3] <= 0 %}disabled{% endif %}>Emprunter</button>
+                        </form>
+
+                        <form action="{{ url_for('retour_livre', livre_id=livre[0]) }}" method="post">
+                            <button {% if livre[3] >= 10 %}disabled{% endif %}>Retour</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            <p class="muted">
+                Note : le retour est limité à un stock maximal de 10 afin d’éviter l’augmentation infinie (règle appliquée côté serveur).
+            </p>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 Bibliothèque - Tous droits réservés
+    </footer>
 </div>
+
 </body>
 </html>
 
