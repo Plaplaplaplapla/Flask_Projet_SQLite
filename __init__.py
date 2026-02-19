@@ -160,23 +160,50 @@ def Readfiche(post_id):
 
 @app.route('/enregistrer_client', methods=['GET', 'POST'])
 def enregistrer_client():
-    if not est_authentifie():
+    if not est_authentifie() or not est_admin():
         return redirect(url_for('authentification'))
 
-    if request.method == 'POST':
-        nom = request.form['nom']
-        prenom = request.form['prenom']
-        conn = sqlite3.connect('database.db')
-        cursor = conn.cursor()
-        cursor.execute(
-            'INSERT INTO clients (created, nom, prenom, adresse) VALUES (?, ?, ?, ?)',
-            (1002938, nom, prenom, "ICI")
-        )
-        conn.commit()
-        conn.close()
-        return redirect(url_for('ReadBDD'))
+    error = None
 
-    return render_template('formulaire.html')
+    if request.method == 'POST':
+        nom = request.form.get('nom', '').strip()
+        prenom = request.form.get('prenom', '').strip()
+        adresse = request.form.get('adresse', '').strip()
+
+        if not nom or not prenom or not adresse:
+            error = "Veuillez remplir tous les champs."
+        else:
+            conn = sqlite3.connect('database.db')
+            cursor = conn.cursor()
+            cursor.execute(
+                'INSERT INTO clients (nom, prenom, adresse) VALUES (?, ?, ?)',
+                (nom, prenom, adresse)
+            )
+            conn.commit()
+            conn.close()
+            return redirect(url_for('enregistrer_client'))
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT id, created, nom, prenom, adresse FROM clients ORDER BY id DESC')
+    clients = cursor.fetchall()
+    conn.close()
+
+    return render_template('ajouter_client.html', clients=clients, error=error)
+
+@app.route('/supprimer_client/<int:client_id>', methods=['POST'])
+def supprimer_client(client_id):
+    if not est_authentifie() or not est_admin():
+        return redirect(url_for('authentification'))
+
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM clients WHERE id = ?', (client_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('enregistrer_client'))
+
+
 
 
 # -----------------------------
