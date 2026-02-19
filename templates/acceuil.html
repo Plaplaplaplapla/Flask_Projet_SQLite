@@ -82,13 +82,13 @@
             {% endif %}
         </div>
 
-    <div class="card">
-    <h3>Gestion des emprunts</h3>
-    <p>Consulter les emprunts en cours, effectuer des retours et voir l’historique.</p>
-    {% if session.get('authentifie') %}
-        <a href="{{ url_for('emprunts') }}">Voir les emprunts</a>
-    {% endif %}
-    </div>
+        <div class="card">
+            <h3>Gestion des emprunts</h3>
+            <p>Consulter les emprunts en cours, effectuer des retours et voir l’historique.</p>
+            {% if session.get('authentifie') %}
+                <a href="{{ url_for('emprunts') }}">Voir les emprunts</a>
+            {% endif %}
+        </div>
 
 
         <div class="card">
