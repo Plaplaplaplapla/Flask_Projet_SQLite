@@ -82,13 +82,14 @@
             {% endif %}
         </div>
 
-        <div class="card">
-            <h3>Emprunts et retours</h3>
-            <p>Gérer les emprunts et retours des livres pour les utilisateurs.</p>
-            {% if session.get('authentifie') %}
-                <a href="{{ url_for('lire_livres') }}">Gérer</a>
-            {% endif %}
-        </div>
+    <div class="card">
+    <h3>Gestion des emprunts</h3>
+    <p>Consulter les emprunts en cours, effectuer des retours et voir l’historique.</p>
+    {% if session.get('authentifie') %}
+        <a href="{{ url_for('emprunts') }}">Voir les emprunts</a>
+    {% endif %}
+    </div>
+
 
         <div class="card">
             <h3>Gestionnaire de tâches</h3>
