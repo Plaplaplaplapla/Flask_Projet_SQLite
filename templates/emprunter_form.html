@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Emprunter</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background:#f4f6f8; margin:0; }
+    header { background:#2c3e50; color:#fff; padding:18px 30px; text-align:center; }
+    .container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+    .card { background:#fff; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,.10); padding:18px; }
+    label { font-weight:700; color:#2c3e50; }
+    select, input { width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px; margin-top:6px; margin-bottom:12px; }
+    .btn { background:#27ae60; color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:800; }
+    .btn:hover { background:#2ecc71; }
+    .error { background:#fdecea; border:1px solid #f5c6cb; color:#b71c1c; padding:10px 12px; border-radius:8px; margin-bottom:12px; font-weight:700; }
+    .muted { color:#666; margin-top:10px; }
+    .topbar { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+    a { text-decoration:none; background:#2c3e50; color:#fff; padding:8px 12px; border-radius:6px; font-weight:700; }
+    a:hover { background:#34495e; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Emprunter un livre</h1>
+</header>
+
+<div class="container">
+  <div class="card">
+    <div class="topbar">
+      <a href="{{ url_for('lire_livres') }}">Retour aux livres</a>
+      <a href="{{ url_for('emprunts') }}">Voir les emprunts</a>
+    </div>
+
+    <p><strong>Livre :</strong> {{ livre[1] }} — {{ livre[2] }} | <strong>Stock :</strong> {{ livre[3] }}</p>
+
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post">
+      <label for="client_id">Client</label>
+      <select id="client_id" name="client_id" required>
+        <option value="">-- Choisir un client --</option>
+        {% for c in clients %}
+          <option value="{{ c[0] }}">{{ c[1] }} {{ c[2] }} (id={{ c[0] }})</option>
+        {% endfor %}
+      </select>
+
+      <label for="due_at">Date de retour prévue (optionnel)</label>
+      <input id="due_at" name="due_at" type="date">
+
+      <button class="btn" type="submit">Confirmer l'emprunt</button>
+      <p class="muted">L'emprunt décrémente automatiquement le stock du livre.</p>
+    </form>
+  </div>
+</div>
+</body>
+</html>
