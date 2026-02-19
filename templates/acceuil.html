@@ -77,8 +77,6 @@
             <p>Consulter et gérer les clients inscrits dans la bibliothèque.</p>
             {% if session.get('role') == 'admin' %}
                 <a href="{{ url_for('enregistrer_client') }}">Gérer les clients</a>
-            {% else %}
-                <a href="{{ url_for('ReadBDD') }}">Voir les clients</a>
             {% endif %}
         </div>
 
