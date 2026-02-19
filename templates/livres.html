@@ -184,7 +184,7 @@
                     <td>{{ livre[2] }}</td>
                     <td>{{ livre[3] }}</td>
                     <td>
-                        <form action="{{ url_for('emprunter_livre', livre_id=livre[0]) }}" method="post">
+                        <a href="{{ url_for('emprunter_livre_flow', livre_id=livre[0]) }}">Emprunter</a>
                             <button {% if livre[3] <= 0 %}disabled{% endif %}>Emprunter</button>
                         </form>
 
