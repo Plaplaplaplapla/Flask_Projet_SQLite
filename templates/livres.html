@@ -14,7 +14,6 @@
             min-height: 100vh;
         }
 
-        /* Fond image optionnel (si le fichier n'existe pas, ce n'est pas bloquant) */
         .page-bg {
             min-height: 100vh;
             background:
@@ -87,6 +86,9 @@
         .btn-green { background-color: #27ae60; }
         .btn-green:hover { background-color: #2ecc71; }
 
+        .btn-red { background-color: #c0392b; }
+        .btn-red:hover { background-color: #e74c3c; }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -109,38 +111,10 @@
 
         tr:hover td { background: #f6f6f6; }
 
-        form { display: inline; }
-
-        button {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 7px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s, opacity 0.3s;
-            font-weight: 600;
-            margin-right: 6px;
-        }
-        button:hover { background-color: #2ecc71; }
-
-        button:disabled {
-            background: #b5b5b5;
-            cursor: not-allowed;
-            opacity: 0.9;
-        }
-
         .muted {
             margin-top: 10px;
             color: #666;
             font-size: 0.95em;
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            margin-top: 30px;
-            color: #eaeaea;
         }
     </style>
 </head>
@@ -153,6 +127,7 @@
             <a href="{{ url_for('accueil') }}">Accueil</a>
             <a href="{{ url_for('lire_livres') }}">Livres</a>
             <a href="{{ url_for('ReadBDD') }}">Clients</a>
+            <a href="{{ url_for('emprunts') }}">Emprunts</a>
             {% if session.get('authentifie') %}
                 <a href="{{ url_for('logout') }}">Déconnexion</a>
             {% else %}
@@ -165,6 +140,7 @@
         <div class="card">
             <div class="topbar">
                 <a class="btn" href="{{ url_for('accueil') }}">Retour accueil</a>
+                <a class="btn btn-green" href="{{ url_for('emprunts') }}">Voir les emprunts</a>
                 {% if session.get('role') == 'admin' %}
                     <a class="btn btn-green" href="{{ url_for('ajouter_livre') }}">Ajouter un livre</a>
                 {% endif %}
@@ -184,19 +160,18 @@
                     <td>{{ livre[2] }}</td>
                     <td>{{ livre[3] }}</td>
                     <td>
-                        <a href="{{ url_for('emprunter_livre_flow', livre_id=livre[0]) }}">Emprunter</a>
-                            <button {% if livre[3] <= 0 %}disabled{% endif %}>Emprunter</button>
-
-                        <form action="{{ url_for('retour_livre', livre_id=livre[0]) }}" method="post">
-                            <button {% if livre[3] >= 10 %}disabled{% endif %}>Retour</button>
-                        </form>
+                        {% if livre[3] > 0 %}
+                            <a class="btn btn-green" href="{{ url_for('emprunter_livre_flow', livre_id=livre[0]) }}">Emprunter</a>
+                        {% else %}
+                            <span class="muted">Indisponible</span>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
             </table>
 
             <p class="muted">
-                Note : le retour est limité à un stock maximal de 10 afin d’éviter l’augmentation infinie (règle appliquée côté serveur).
+                Les retours se font depuis la page “Emprunts” (on clôture l’emprunt et le stock remonte automatiquement).
             </p>
         </div>
     </div>
@@ -208,4 +183,3 @@
 
 </body>
 </html>
-
